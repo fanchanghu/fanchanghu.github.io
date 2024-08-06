@@ -10,7 +10,7 @@
 locale                   : "zh-CN"
 title                    : "我的空间"
 title_separator          : "-"
-name                     : &name "保密"
+name                     : &name "Fan Changhu"
 description              : &description "因好奇心而学习，以天下书解吾惑。"
 url                      : https://fanchanghu.github.io # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 baseurl                  : "/fch" # the subpath of your site, e.g. "/blog"
@@ -22,9 +22,9 @@ repository               : "fanchanghu/fch"
 author:
   # Biographic information
   avatar           : "profile.png"
-  name             : "保密"
+  name             : "Fan Changhu"
   pronouns         : # example: "she/her"  
-  bio              : "Short biography for the left-hand sidebar"
+  bio              : "编程、AI、数学、投资、游戏"
   location         : "深圳"
   employer         : # "Red Brick University"
   uri              : # URL
