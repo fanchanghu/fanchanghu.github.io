@@ -11,6 +11,10 @@
     ],
     "markdown-preview-enhanced.mathInlineDelimiters": [
         [
+            "\\(",
+            "\\)"
+        ],
+        [
             "\\\\(",
             "\\\\)"
         ]
