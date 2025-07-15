@@ -13,7 +13,7 @@ title_separator          : "-"
 name                     : &name "Fan Changhu"
 description              : &description "学而时习之，不亦说乎？"
 url                      : https://fanchanghu.github.io # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
-baseurl                  : "/blog" # the subpath of your site, e.g. "/blog"
+baseurl                  : "/" # the subpath of your site, e.g. "/blog"
 repository               : "fanchanghu/fch"
 
 # Site Author - The following control what appear as part of the author content on the side bar.
