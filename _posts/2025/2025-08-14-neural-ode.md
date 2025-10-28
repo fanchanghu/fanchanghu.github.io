@@ -1,7 +1,7 @@
 ---
 title: 'Neural ODE 与伴随灵敏度方法（Adjoint Sensitivity Method）'
 date: 2025-08-14
-permalink: /posts/2025/08/blog-post-1/
+permalink: /posts/2025/08/neural-ode/
 tags:
   - Neural ODE
   - 伴随灵敏度方法

@@ -1,7 +1,7 @@
 ---
 title: '从 GEMM 理解 Triton DSL'
 date: 2025-10-20
-permalink: /posts/2025/10/blog-post-1/
+permalink: /posts/2025/10/triton-gemm/
 tags:
   - Triton
   - Triton DSL

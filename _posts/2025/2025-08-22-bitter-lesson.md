@@ -1,7 +1,7 @@
 ---
 title: '苦涩的教训(The Bitter Lesson)'
 date: 2025-08-22
-permalink: /posts/2025/08/blog-post-3/
+permalink: /posts/2025/08/bitter-lesson/
 tags:
   - The Bitter Lesson
   - 苦涩的教训

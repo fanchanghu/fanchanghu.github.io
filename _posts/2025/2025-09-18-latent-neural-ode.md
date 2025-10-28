@@ -1,7 +1,7 @@
 ---
 title: 'Latent Neural ODE'
 date: 2025-09-18
-permalink: /posts/2025/09/blog-post-1/
+permalink: /posts/2025/09/latent-neural-ode/
 tags:
   - Neural ODE
   - time-series model
