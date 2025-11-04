@@ -3,11 +3,13 @@ title: 'Agent Memory Survey'
 date: 2025-11-03
 permalink: /posts/2025/11/agent-memory-survey/
 tags:
+  - 智能体记忆
   - Agent Memory
-  - Latent Memory
-  - Agent 记忆
+  - Era of Experience
   - 持续学习
   - Continuous Learning
+  - 潜在记忆
+  - Latent Memory
 ---
 本文系统性地综述了智能体记忆（Agent Memory）领域的核心概念、关键技术与最新进展。首先分析了在人工智能从“人类数据时代”迈向“体验时代”（Era of Experience）的范式转变中，记忆系统是智能体实现持续学习、在线改进和塑造个性的核心基石，是突破大语言模型上下文困境、将被动工具转化为主动智能伙伴的关键。其次，从多维度对记忆进行了分类梳理，详细阐述了记忆的完整操作生命周期，包括外部的读写与内部的合并、反思和删除等管理策略。最后，重点探讨了记忆的实现方式，包括检索式记忆（如向量与图匹配）、参数化记忆（如微调、LoRA、知识编辑）以及新兴的潜在记忆（如：MemoryLLM/M+）等前沿技术，揭示了记忆系统从外部存储到与模型深度集成的演进趋势。
 
