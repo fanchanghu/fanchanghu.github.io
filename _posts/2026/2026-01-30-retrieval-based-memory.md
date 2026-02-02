@@ -1,5 +1,5 @@
 ---
-title: 'LLM Agent 检索式记忆学习'
+title: 'LLM Agent 检索式记忆 论文学习（A-Mem / H-MEM / G-Memory）'
 date: 2026-01-30
 permalink: /posts/2026/01/retrieval-based-memory/
 tags:
@@ -8,6 +8,11 @@ tags:
   - 检索式记忆
   - Retrieval-based Memory
 ---
+
+本报告分析了三项关于 Agent 记忆系统的研究：A-Mem、H-MEM 与 G-Memory。展示了 Agent 记忆从简单的“向量检索库”向复杂结构化系统演进的趋势，核心目标在于解决长序列交互中的信息丢失、检索噪声及知识演化问题。
+- A-Mem 侧重于关联性，利用逻辑链接模拟人类思维的跳跃与联想。
+- H-MEM 侧重于效率，通过类似文件索引的层级路由解决海量数据的检索负担。
+- G-Memory 侧重于协作性，通过“查询-洞察-交互”三层图结构，为多智能体环境提供宏观经验与微观细节的深度融合。
 
 ## A-Mem
 
