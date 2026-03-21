@@ -77,19 +77,6 @@ tags:
 
 记忆使智能体能够通过**反思机制**从历史经验中学习，实现行为模式的优化。这种机制本质上是一种基于自然语言的强化学习。
 
-具体而言，智能体可以定期总结近期行为，识别模式、错误和改进点。例如，通过设计如下反思 prompt ：
-
-```
-reflection_prompt = f"""
-You are reviewing your recent actions. Based on the following summaries, what patterns,
-mistakes, or improvements do you notice?
-
-{recent_summaries}
-
-Provide 3 takeaways and 1 improvement plan for your future tasks.
-"""
-```
-
 反思结果可以作为元记忆存储，用于指导未来任务。这种**自我批评与修正**的能力，使智能体能够在不断迭代中从“生疏”进阶到“熟练”。
 
 ### 2.3 持续学习，在学习中塑造“个性”
