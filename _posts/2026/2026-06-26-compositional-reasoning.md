@@ -1,4 +1,17 @@
-# 小模型隐式推理：从 HRM 到 TRM 再到 FPRM 的技术演进
+---
+title: '小模型隐式推理：HRM、TRM、FPRM'
+date: 2026-06-26
+permalink: /posts/2026/06/compositional-reasoning/
+tags:
+  - Compositional Reasoning
+  - 组合推理
+  - 小模型隐式推理
+  - HRM
+  - TRM
+  - FPRM
+---
+
+# 小模型隐式推理：HRM、TRM、FPRM
 
 ---
 
