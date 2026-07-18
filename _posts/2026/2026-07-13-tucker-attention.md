@@ -11,6 +11,8 @@ tags:
 
 # 论文总结：Tucker Attention
 
+> 原文：Timon Klein, Jonas Kusch, Sebastian Sager, Stefan Schnake, Steffen Schotthöfer. *Tucker Attention: A generalization of approximate attention mechanisms*. arXiv:2503.30033.
+
 ## 一、研究动机与问题
 
 Transformer 架构中的多头注意力（MHA）虽然强大，但引入了大量参数，导致三个阶段的内存瓶颈：
@@ -78,27 +80,30 @@ $$\mathcal{W} = \mathcal{C} \times_{j=1}^3 U_j, \quad \tilde{\mathcal{W}} = \til
 
 ### 3.2 参数效率分析
 
-假设 Tucker Attention 中 key、query、value、output 的秩均设为 $r$，头模式秩设为 $r_1$，则参数数量为：
+假设 Tucker Attention 中 key、query、value、output 的秩均设为 $r$，头模式秩设为 $r_1$，则参数数量为（separated KV）：
 
-$$\text{Params}_{\text{Tucker}} = 2(n_H r_1 + 2r d_{\text{model}} + r_1 r^2)$$
+$$\text{Params}_{\text{Tucker}}^{\text{sep}} = 2(n_H r_1 + 2r d_{\text{model}} + r_1 r^2)$$
 
-相比之下，MHA 的参数数为 $4d_{\text{model}}^2$，GQA 为 $2d_{\text{model}}^2 + 2n_{KV} d_H d_{\text{model}}$，MLA 为 $d_{\text{model}}^2 + 5d_{\text{model}} d_c$。
+若共享 key/value 投影（shared KV），则进一步减为：
+
+$$\text{Params}_{\text{Tucker}}^{\text{shared}} = 2 n_H r_1 + 3r d_{\text{model}} + 2r_1 r^2$$
+
+相比之下，MHA 的参数数为 $4d_{\text{model}}^2$（按 per-head 维度 $4 n_H d_{\text{model}} d_H = 4d_{\text{model}}^2$；论文 Table 1 写作 $4 n_H d_{\text{model}}^2$，疑为笔误），GQA 为 $2d_{\text{model}}^2 + 2n_{KV} d_H d_{\text{model}}$，MLA 为 $d_{\text{model}}^2 + 5d_{\text{model}} d_c$。
 
 当 $r \ll d_{\text{model}}$ 时，Tucker Attention 的参数规模随 $O(r d_{\text{model}} + r_1 r^2)$ 增长，而非 $O(d_{\text{model}}^2)$，因此具有显著的参数效率优势。
 
-## 四、与现有方法的统一关系
+## 四、各方法的 Tucker 秩
 
-一个关键的理论结果是：**MHA、MQA、GQA、MLA 都是 Tucker Attention 在特定秩下的特例**。
+![](/images/202607/tucker-attention-1.png)
 
-### 4.1 理论基础
+*图 1（论文原图）：现有各分解方式下 pre-softmax 注意力张量 $\mathcal{W}$ 的构造示意，彩色边表示收缩维度。*
 
-**定理 B.2**：若 $W_i = W^Q_i W^{K,\top}_i$，则 pre-softmax 张量 $\mathcal{W}$ 可写为：
+- **(a) MHA**：对每个头，query 与 key 矩阵沿头维度 $d_H$ 收缩，得到 Tucker 秩 $(n_H, d_{\text{model}}, d_{\text{model}})$。
+- **(b) GQA**：query 侧与 MHA 相同，但只有 $n_{KV}$ 个 key 矩阵，每个 key 广播到同组的所有 query，秩为 $(n_H, d_{\text{model}}, n_{KV} d_H)$（MQA 即 $n_{KV}=1$ 的特例）。
+- **(c) MLA**：query 和 key 被替换为"下投影 + 上投影"（$W^{QD}$、$W^{QU,P}$、$W^{KV,P}$、$W^{KVD}$），沿 latent 维度 $d_c$ 与头维度收缩，秩为 $(n_H, d^Q_c, d^K_c)$。
+- **(d) Tucker Attention**：直接用核心张量 $\mathcal{C}$ 与三个基矩阵 $U_1$（头模式）、$U_2$（query 模式）、$U_3$（key 模式）参数化整个张量，三个模式均可压缩。
 
-$$\mathcal{W} = \mathcal{C} \times_2 W^Q \Pi \times_3 W^K \Pi$$
-
-其中 $\Pi$ 是列置换矩阵。因此，$W^Q$ 和 $W^K$ 的低秩分解直接决定了 $\mathcal{W}$ 的 Tucker 秩。
-
-### 4.2 各方法的 Tucker 秩
+对 post-softmax 张量 $\tilde{\mathcal{W}}$，MHA 与 GQA 的参数化方式类似；而 MLA 中只有 value 矩阵是低秩分解的，output 矩阵仍保持满秩。
 
 | 方法 | $\mathcal{W}$ 的 Tucker 秩 | $\tilde{\mathcal{W}}$ 的 Tucker 秩 |
 |------|--------------------------|----------------------------------|
@@ -106,16 +111,17 @@ $$\mathcal{W} = \mathcal{C} \times_2 W^Q \Pi \times_3 W^K \Pi$$
 | **MQA** | $(n_H, d_{\text{model}}, d_H)$ | $(n_H, d_{\text{model}}, d_H)$ |
 | **GQA** ($n_{KV}$ 个 KV 头) | $(n_H, d_{\text{model}}, d_H n_{KV})$ | $(n_H, d_{\text{model}}, d_H n_{KV})$ |
 | **MLA** | $(n_H, d^Q_c, d^K_c)$ | $(n_H, d_{\text{model}}, d^K_c)$ |
+| **Tucker Attention** | $(r_1, r_2, r_3)$ | $(\tilde{r}_1, \tilde{r}_2, \tilde{r}_3)$ |
 
-可以看到，**所有现有方法的头模式秩都是 $n_H$（即未压缩）**——这正是 Tucker Attention 的改进空间。
-
-## 五、关键技术兼容性
+## 五、与现有方法的兼容关系
 
 ### 5.1 KV-Caching
 
 Tucker Attention 的 KV-cache 实现非常简洁：只需缓存 $K = XU_3 \in \mathbb{R}^{N \times r_3}$ 和 $V = X\tilde{U}_3 \in \mathbb{R}^{N \times r_3}$，缓存大小为 $2Nr_3$。若使用共享 KV 投影，则进一步减至 $Nr_3$。对于最后一个 token $x \in \mathbb{R}^{d_{\text{model}}}$ 的注意力更新：
 
 $$\sigma\left(\frac{\tilde{\mathcal{C}} \times_1 U_1 \times_2 xU_2 \times_3 K}{\sqrt{d_H}}\right) \times_3 V$$
+
+> 注：该式直接来自论文原文。query 侧由 post-softmax 核心 $\tilde{\mathcal{C}}$ 与共享的 $U_1, U_2$ 共同构造；pre-softmax 核心 $\mathcal{C}$ 与 $\tilde{\mathcal{C}}$ 在训练中同时学习。
 
 ### 5.2 Latent RoPE
 
@@ -137,22 +143,22 @@ $$X_m W^{DQ} W^{UQ}_i W^{UV}_i R(m, d_c) R(n, d_c)^\top W^{DKV,\top} X_n$$
 
 这允许在推理时将 query 侧矩阵融合为单一投影 $W^{Q,\text{MLA}}_i := W^{DQ} W^{UQ}_i W^{UV}_i \in \mathbb{R}^{d_{\text{model}} \times d_c}$，消除了对分离路径的需求。
 
-### 5.4 Flash-Attention 兼容性
-
-Tucker Attention 可**同时获得 MQA 和 MLA 在 Flash-Attention 中的优势**：
-- **MQA 的优势**：单个 KV 对为所有 query 头共享，只需加载一次
-- **MLA 的优势**：KV chunk 编码在 $r_3$ 维 latent 空间中，比 $d_H$ 维的 chunk 占用更少 SRAM
-
-实现上，只需预计算 $K = XU_3$、$V = X\tilde{U}_3$ 和每个头的 $Q_i = \mathcal{C} \times_1 U_1 \times_2 (XU_2)$，然后调用原生支持 GQA 的 Flash-Attention kernel（以 $n_{KV}=1$ 的 GQA 形式调用）。
-
 ## 六、实验验证
 
 ### 6.1 奇异值分析
 
-对训练后的 GPT-2 模型进行后验奇异值分析，作者发现 $\mathcal{W}$ 和 $\tilde{\mathcal{W}}$ 在所有模式上（包括头模式）都表现出显著的**谱衰减**，表明在实际训练中确实存在可压缩的低秩结构。MHA 对所有模式表现出相似的谱衰减，但 GQA 和 MLA 无法利用头模式中的冗余——只有 Tucker Attention 的 $U_1$ 基矩阵能捕获这种结构。
+对训练后的 GPT-2 模型进行后验奇异值分析（图 2 为 pre-softmax 头模式 $\mathrm{Mat}_1(\mathcal{W})$ 的归一化奇异谱，附录图 5 给出全部模式），作者观察到：
+
+- **MHA** 在各模式上呈现相似的谱衰减，说明 query/key/output/value 模式存在可压缩的低秩结构，支撑了 $r \ll d_{\text{model}}$ 的假设；
+- **头模式**上，MLA 与 Tucker（$r_1=8$）表现出相似的低秩行为，但 MLA 的参数化方式无法利用这一冗余——GQA/MLA 的头模式秩被固定为 $n_H$，一旦施加 query 与 output 投影，头模式中的低秩结构便无法转化为参数节省。只有 Tucker Attention 的 $U_1$ 基矩阵能捕获这种跨头结构。
+
+> 评注：需注意 GPT-2 仅有 12 个头，头模式谱仅含 12 个奇异值，其"衰减"的统计意义有限；头模式可压缩性的最终证据仍来自 6.2 节的端到端训练结果，而非谱图本身。
 
 ### 6.2 主要实验结果
 
+论文中 Tucker 秩记为 $(r_1, r_2, r_3)$，例如 $[8,128,64]$ 表示 $r_1=8, r_2=128, r_3=64$。
+
 - **ViT 迁移学习**：在 ImageNet1k 上，Tucker Attention 在达到可比精度时，参数比 GQA 和 MLA 少**近一个数量级**
-- **GPT-2 预训练**：Tucker 秩 $(8, 128, 64)$ 仅需 MHA 约 **18%** 的参数和 MLA 约 **39%** 的参数即可达到竞争性的验证指标
-- **LLaMA3-1B 训练**：Tucker Attention 仅使用 GQA ($n_{KV}=8$) 约 **10–20%** 的参数，验证损失仅增加 1–3%，同时训练迭代时间减少最高 20%
+- **GPT-2 预训练（无 RoPE）**：Tucker 秩 $[8, 128, 64]$ 仅需 MHA 约 **18%** 的参数和 MLA 约 **39%** 的参数即可达到竞争性的验证指标
+- **GPT-2 预训练（with RoPE）**：Tucker $[8,128,128]$ 验证损失 2.881，MHA 为 2.831
+- **LLaMA3-1B 训练**：Tucker Attention 仅使用 GQA ($n_{KV}=8$) 约 **10–20%** 的参数，验证损失增加约 1–3%（例如 Tucker $[32,128,128]$ 2.65 vs GQA 2.61，Tucker $[32,64,64]$ 2.69 vs GQA 2.61），同时训练迭代时间减少最高 20%
