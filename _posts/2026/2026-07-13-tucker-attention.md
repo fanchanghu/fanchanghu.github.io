@@ -11,7 +11,7 @@ tags:
 
 # 论文总结：Tucker Attention
 
-> 原文：Timon Klein, Jonas Kusch, Sebastian Sager, Stefan Schnake, Steffen Schotthöfer. *Tucker Attention: A generalization of approximate attention mechanisms*. arXiv:2503.30033.
+> 原文：[Tucker Attention: A generalization of approximate attention mechanisms](https://arxiv.org/abs/2603.30033v1)
 
 ## 一、研究动机与问题
 
