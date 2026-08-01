@@ -61,9 +61,7 @@ $$\mathcal{H}^{(2)}(X) := \tilde{\mathcal{W}} \times_3 X \in \mathbb{R}^{n_H \ti
 
 $$\text{MHA}(X; \mathcal{W}, \tilde{\mathcal{W}})_{jk} = \sum_{i,\ell} \mathcal{H}^{(1)}_{ij\ell}(X; \mathcal{W}) \mathcal{H}^{(2)}_{ik\ell}(X; \tilde{\mathcal{W}})$$
 
-## 三、Tucker Attention 方法
-
-### 3.1 Tucker 分解参数化
+## 三、Tucker Attention：分解与参数化
 
 一旦将注意力权重表达为张量 $\mathcal{W}$ 和 $\tilde{\mathcal{W}}$，就可以引入 Tucker 分解——一种经典的低秩张量分解方法——来**同时压缩所有模式**。
 
@@ -78,21 +76,9 @@ $$\mathcal{W} = \mathcal{C} \times_{j=1}^3 U_j, \quad \tilde{\mathcal{W}} = \til
 
 **核心洞察**：基矩阵 $U_2, U_3$（及 $\tilde{U}_2, \tilde{U}_3$）捕获了不同头之间在 query/key（output/value）计算中的**共享子空间**，而 $U_1$ 和 $\tilde{U}_1$ 则首次实现了**头模式本身的压缩**——这是 MHA、GQA、MLA 都做不到的。
 
-### 3.2 参数效率分析
-
-假设 Tucker Attention 中 key、query、value、output 的秩均设为 $r$，头模式秩设为 $r_1$，则参数数量为（separated KV）：
-
-$$\text{Params}_{\text{Tucker}}^{\text{sep}} = 2(n_H r_1 + 2r d_{\text{model}} + r_1 r^2)$$
-
-若共享 key/value 投影（shared KV），则进一步减为：
-
-$$\text{Params}_{\text{Tucker}}^{\text{shared}} = 2 n_H r_1 + 3r d_{\text{model}} + 2r_1 r^2$$
-
-相比之下，MHA 的参数数为 $4d_{\text{model}}^2$（按 per-head 维度 $4 n_H d_{\text{model}} d_H = 4d_{\text{model}}^2$；论文 Table 1 写作 $4 n_H d_{\text{model}}^2$，疑为笔误），GQA 为 $2d_{\text{model}}^2 + 2n_{KV} d_H d_{\text{model}}$，MLA 为 $d_{\text{model}}^2 + 5d_{\text{model}} d_c$。
-
 当 $r \ll d_{\text{model}}$ 时，Tucker Attention 的参数规模随 $O(r d_{\text{model}} + r_1 r^2)$ 增长，而非 $O(d_{\text{model}}^2)$，因此具有显著的参数效率优势。
 
-## 四、各方法的 Tucker 秩
+## 四、与现有方法的统一关系与参数对比
 
 ![](/images/202607/tucker-attention-1.png)
 
@@ -105,6 +91,8 @@ $$\text{Params}_{\text{Tucker}}^{\text{shared}} = 2 n_H r_1 + 3r d_{\text{model}
 
 对 post-softmax 张量 $\tilde{\mathcal{W}}$，MHA 与 GQA 的参数化方式类似；而 MLA 中只有 value 矩阵是低秩分解的，output 矩阵仍保持满秩。
 
+### 4.1 Tucker 秩
+
 | 方法 | $\mathcal{W}$ 的 Tucker 秩 | $\tilde{\mathcal{W}}$ 的 Tucker 秩 |
 |------|--------------------------|----------------------------------|
 | **MHA** | $(n_H, d_{\text{model}}, d_{\text{model}})$ | $(n_H, d_{\text{model}}, d_{\text{model}})$ |
@@ -112,6 +100,23 @@ $$\text{Params}_{\text{Tucker}}^{\text{shared}} = 2 n_H r_1 + 3r d_{\text{model}
 | **GQA** ($n_{KV}$ 个 KV 头) | $(n_H, d_{\text{model}}, d_H n_{KV})$ | $(n_H, d_{\text{model}}, d_H n_{KV})$ |
 | **MLA** | $(n_H, d^Q_c, d^K_c)$ | $(n_H, d_{\text{model}}, d^K_c)$ |
 | **Tucker Attention** | $(r_1, r_2, r_3)$ | $(\tilde{r}_1, \tilde{r}_2, \tilde{r}_3)$ |
+
+所有现有方法的头模式秩都是 $n_H$（即未压缩）——这正是 Tucker Attention 的改进空间。
+
+### 4.2 参数量与 KV-Cache（论文 Table 1）
+
+设 Tucker 的 key/query/value/output 模式秩均为 $r$，头模式秩为 $r_1$，MLA 的 latent 维度为 $d_c$：
+
+| 方法 | 训练参数量 | KV Cache |
+|------|-----------|----------|
+| **MHA** | $4d_{\text{model}}^2$ | $4 N n_H d_{\text{model}}$ |
+| **MQA** | $4d_{\text{model}}^2$ | $2 N d_{\text{model}}$ |
+| **GQA** ($n_{KV}$ 个 KV 头) | $2d_{\text{model}}^2 + 2 n_{KV} d_H d_{\text{model}}$ | $2 N n_{KV} d_H$ |
+| **MLA** (shared KV) | $d_{\text{model}}^2 + 5d_{\text{model}} d_c$ | $N d_c$ |
+| **Tucker** (separated KV) | $2(n_H r_1 + 2r d_{\text{model}} + r_1 r^2)$ | $2 N r$ |
+| **Tucker** (shared KV) | $2 n_H r_1 + 3r d_{\text{model}} + 2r_1 r^2$ | $N r$ |
+
+> 注：MHA 按 per-head 维度计算为 $4 n_H d_{\text{model}} d_H = 4d_{\text{model}}^2$；论文 Table 1 写作 $4 n_H d_{\text{model}}^2$，疑为笔误。MLA 训练/推理参数不同（推理时可融合投影），表中列训练量。当 $r \ll d_{\text{model}}$ 时，Tucker 从 $O(d_{\text{model}}^2)$ 降至 $O(r d_{\text{model}} + r_1 r^2)$。
 
 ## 五、与现有方法的兼容关系
 
